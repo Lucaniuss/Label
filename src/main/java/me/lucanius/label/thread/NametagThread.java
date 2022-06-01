@@ -7,12 +7,15 @@ import me.lucanius.label.data.NametagData;
 import me.lucanius.label.service.NametagService;
 import me.lucanius.label.tools.Reference;
 import me.lucanius.label.tools.Voluntary;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Lucanius
@@ -57,10 +60,13 @@ public class NametagThread extends Thread {
         }
 
         Reference<NametagData> reference = new Reference<>();
-        AtomicInteger priority = new AtomicInteger();
+        Reference<Integer> priority = new Reference<>(0);
 
         all.forEach(online -> {
             List<NametagData> onlineData = adapter.getData(online);
+            if (onlineData == null || onlineData.isEmpty()) {
+                return;
+            }
 
             onlineData.stream().filter(d -> d.getPriority() > priority.get()).forEach(d -> priority.set(d.getPriority()));
             reference.set(onlineData.stream().filter(d -> d.getPriority() == priority.get()).findFirst().orElse(null));
@@ -96,6 +102,19 @@ public class NametagThread extends Thread {
                 }
 
                 cached.put(onlineId, name);
+            }
+
+            Objective objective = scoreboard.getObjective(DisplaySlot.BELOW_NAME);
+            if (data.isShowHealth()) {
+                if (objective == null) {
+                    objective = scoreboard.registerNewObjective("showhealth", "health");
+                }
+
+                objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
+                objective.setDisplayName(ChatColor.DARK_RED + StringEscapeUtils.unescapeJava("\u2764"));
+                objective.getScore(onlineName).setScore((int) Math.floor(online.getHealth()));
+            } else if (objective != null) {
+                objective.unregister();
             }
 
             player.setScoreboard(scoreboard);

@@ -15,11 +15,13 @@ public class NametagData {
     private final int priority;
     private final String prefix;
     private final String suffix;
+    private final boolean showHealth;
 
-    public NametagData(String name, int priority, String prefix, String suffix) {
+    public NametagData(String name, int priority, String prefix, String suffix, boolean showHealth) {
         this.name = name;
         this.priority = priority;
         this.prefix = CC.translate(prefix);
         this.suffix = CC.translate(suffix);
+        this.showHealth = showHealth;
     }
 }
