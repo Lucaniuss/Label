@@ -5,6 +5,7 @@ import me.lucanius.label.adapter.NametagAdapter;
 import me.lucanius.label.cache.NametagCache;
 import me.lucanius.label.data.NametagData;
 import me.lucanius.label.service.NametagService;
+import me.lucanius.label.tools.Reference;
 import me.lucanius.label.tools.Voluntary;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -12,7 +13,6 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Lucanius
@@ -56,7 +56,7 @@ public class NametagThread extends Thread {
             return;
         }
 
-        AtomicReference<NametagData> reference = new AtomicReference<>();
+        Reference<NametagData> reference = new Reference<>();
         AtomicInteger priority = new AtomicInteger();
 
         all.forEach(online -> {
