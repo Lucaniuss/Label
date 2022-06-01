@@ -3,7 +3,6 @@ package me.lucanius.label.adapter;
 import me.lucanius.label.data.NametagData;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,9 +12,6 @@ import java.util.List;
  */
 public interface NametagAdapter {
 
-    void update(Player first, Player second);
+    List<NametagData> getData(Player player);
 
-    default List<NametagData> data() {
-        return new ArrayList<>();
-    }
 }

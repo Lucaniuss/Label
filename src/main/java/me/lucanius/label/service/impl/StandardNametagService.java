@@ -1,16 +1,14 @@
 package me.lucanius.label.service.impl;
 
-import me.lucanius.label.Label;
-import me.lucanius.label.adapter.NametagAdapter;
-import me.lucanius.label.data.NametagData;
+import me.lucanius.label.cache.NametagCache;
 import me.lucanius.label.service.NametagService;
-import me.lucanius.label.tools.Condition;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
-import org.bukkit.entity.Player;
+import me.lucanius.label.thread.NametagThread;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Lucanius
@@ -19,51 +17,40 @@ import java.util.concurrent.Executors;
  */
 public class StandardNametagService implements NametagService {
 
-    private final Label label;
-    private final NametagAdapter adapter;
-    private final ExecutorService thread;
-    private final List<NametagData> data;
+    private final Map<UUID, NametagCache> cache;
+    private final NametagThread thread;
 
-    public StandardNametagService(NametagAdapter adapter) {
-        this.label = Label.INSTANCE;
-        this.adapter = adapter;
-        this.thread = Executors.newSingleThreadExecutor();
-        this.data = adapter.data();
+    public StandardNametagService() {
+        this.cache = new ConcurrentHashMap<>();
+        this.thread = new NametagThread(this);
     }
 
     @Override
-    public void join(Player player) {
-        data.forEach(data -> ((CraftPlayer) player).getHandle().playerConnection.sendPacket(data.getPacket()));
-        refresh(player, true);
+    public void destroy() {
+        if (thread.isAlive()) {
+            thread.stop();
+        }
+
+        cache.values().forEach(NametagCache::destroy);
     }
 
     @Override
-    public void refresh(Player player, boolean async) {
-        thread.execute(() -> label.getOnline().stream().filter(online -> online != player).forEach(online -> refresh(player, online, async)));
+    public void join(PlayerJoinEvent event) {
+        cache.put(event.getPlayer().getUniqueId(), new NametagCache(event.getPlayer()));
     }
 
     @Override
-    public void refresh(Player first, Player second, boolean async) {
-        Condition.of(async, () -> thread.execute(() -> refresh(first, second))).orElse(() -> refresh(first, second));
+    public void quit(PlayerQuitEvent event) {
+        cache.remove(event.getPlayer().getUniqueId());
     }
 
     @Override
-    public void refresh(Player first, Player second) {
-        adapter.update(first, second);
-    }
-
-    @Override
-    public NametagAdapter getAdapter() {
-        return adapter;
-    }
-
-    @Override
-    public ExecutorService getExecutor() {
+    public NametagThread getThread() {
         return thread;
     }
 
     @Override
-    public List<NametagData> getRegistered() {
-        return data;
+    public Map<UUID, NametagCache> getCache() {
+        return cache;
     }
 }

@@ -5,6 +5,10 @@ import me.lucanius.label.adapter.NametagAdapter;
 import me.lucanius.label.service.NametagService;
 import me.lucanius.label.service.impl.StandardNametagService;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Collection;
@@ -15,24 +19,35 @@ import java.util.Collection;
  * Label - All Rights Reserved.
  */
 @Getter
-public class Label {
+public class Label implements Listener {
 
-    public static Label INSTANCE;
-    public static int COUNTER = 0;
+    @Getter private static Label instance;
 
     private final Plugin plugin;
     private final NametagAdapter adapter;
     private final NametagService service;
 
     public Label(Plugin plugin, NametagAdapter adapter) {
-        INSTANCE = this;
+        instance = this;
 
         this.plugin = plugin;
         this.adapter = adapter;
-        this.service = new StandardNametagService(adapter);
+        this.service = new StandardNametagService();
+
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public Collection<? extends Player> getOnline() {
         return plugin.getServer().getOnlinePlayers();
+    }
+
+    @EventHandler
+    public void onJoin(final PlayerJoinEvent event) {
+        service.join(event);
+    }
+
+    @EventHandler
+    public void onQuit(final PlayerQuitEvent event) {
+        service.quit(event);
     }
 }

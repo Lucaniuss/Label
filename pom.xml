@@ -63,7 +63,7 @@
                                     </excludes>
                                 </filter>
                             </filters>
-                            <finalName>Edge</finalName>
+                            <finalName>Label</finalName>
                             <outputDirectory>${project.basedir}/target</outputDirectory>
                         </configuration>
                     </execution>
